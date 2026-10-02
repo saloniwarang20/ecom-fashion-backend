@@ -1,15 +1,25 @@
+FROM maven:3.9-eclipse-temurin-22 AS builder
+
+WORKDIR /app
+
+COPY pom.xml .
+COPY .mvn .mvn
+COPY mvnw .
+
+RUN chmod +x mvnw
+
+RUN ./mvnw dependency:go-offline
+
+COPY src src
+
+RUN ./mvnw clean package -DskipTests
+
+
 FROM eclipse-temurin:22-jdk
 
 WORKDIR /app
 
-COPY .mvn .mvn
-COPY mvnw .
-COPY pom.xml .
-
-RUN chmod +x mvnw
-RUN ./mvnw clean package -DskipTests
-
-COPY target/*.jar app.jar
+COPY --from=builder /app/target/*.jar app.jar
 
 EXPOSE 8080
 
